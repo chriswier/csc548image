@@ -8,6 +8,10 @@ import cv2, time, os
 
 # # # #
 # Variables
+
+capwidth  = 1640     # max 3264
+capheight = 1232     # max 2448
+
 t = time.localtime()
 filebasename = "/storage/images/{0}".format(time.strftime("%Y%m%d%H%M"))
 
@@ -31,10 +35,10 @@ video2 = cv2.VideoCapture(2)
 
 # 2a - Check the they opened appropriately and set resolution
 if(video1.isOpened() and video2.isOpened()):
-    video1.set(3,3264)
-    video1.set(4,2448)
-    video2.set(3,3264)
-    video2.set(4,2448)
+    video1.set(3,capwidth)
+    video1.set(4,capheight)
+    video2.set(3,capwidth)
+    video2.set(4,capheight)
 else:
     print("Could not verify camera opens")
     exit(1)
