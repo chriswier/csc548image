@@ -1,0 +1,5 @@
+To enable a crontab to watch this, do:
+
+*/5 7-23 * * 1-6 /home/pi/csc548image/capture/capture.py
+
+This sets up Mon-Sat 7:00am-11:59pm, on every 5th minute.

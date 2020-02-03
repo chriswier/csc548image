@@ -1,0 +1,42 @@
+Notes on installs:
+
+-------
+
+OpenCV installation (source):
+https://www.pyimagesearch.com/2019/09/16/install-opencv-4-on-raspberry-pi-4-and-raspbian-buster/
+
+0.  (root)
+1.  apt install build-essential cmake pkg-config -y
+2.  apt install libjpeg-dev libtiff5-dev libjasper-dev libpng-dev -y
+3.  apt install libavcodec-dev libavformat-dev libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libfontconfig1-dev libcairo2-dev libgdk-pixbuf2.0-dev libpango1.0-dev libgdk-pixbuf2.0-dev libgtk2.0-dev libgtk-3-dev libgtk2.0-dev libgtk-3-dev libgtk2.0-dev libgtk-3-dev
+4.  apt install libatlas-base-dev gfortran
+5.  apt install libhdf5-dev libhdf5-serial-dev libhdf5-103 libqtgui4 libqtwebkit4 libqt4-test python3-pyqt5 python3-dev
+6.  apt install python3-pip virtualenv virtualenvwrapper
+
+--------
+
+Create a Python3 'cv' virtual environment
+0.  (pi user) cwd: /home/pi
+1.  virtualenv --python=python3 cv
+2.  source cv/bin/activate
+3.  pip install numpy
+7.  git clone https://github.com/opencv/opencv
+8.  git clone https://github.com/opencv/opencv_contrib
+9.  cd opencv
+10. mkdir build && cd build
+11.  cmake -D CMAKE_BUILD_TYPE=RELEASE \
+    -D CMAKE_INSTALL_PREFIX=/usr/local \
+    -D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib/modules \
+    -D ENABLE_NEON=ON \
+    -D ENABLE_VFPV3=ON \
+    -D BUILD_TESTS=OFF \
+    -D INSTALL_PYTHON_EXAMPLES=OFF \
+    -D OPENCV_ENABLE_NONFREE=ON \
+    -D CMAKE_SHARED_LINKER_FLAGS=-latomic \
+    -D BUILD_EXAMPLES=OFF ..
+12.  nice make -j4
+13.  make install && ldconfig
+14.  (root) cd /usr/local/lib/python3.7/site-packages/cv2/python-3.7/
+14a. ln -s cv2.cpython-37m-arm-linux-gnueabihf.so cv2.so
+15.  (pi) cd ~/csc548/cv/lib/python3.7/site-packages/
+15a. ln -s /usr/local/lib/python3.7/site-packages/cv2/cv2.cpython-37m-arm-linux-gnueabihf.so cv2.so

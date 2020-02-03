@@ -9,8 +9,8 @@ import cv2, time, os
 # # # #
 # Variables
 
-capwidth  = 1640     # max 3264
-capheight = 1232     # max 2448
+capwidth  = 2592     # max 3264
+capheight = 1944     # max 2448
 
 t = time.localtime()
 filebasename = "/storage/images/{0}".format(time.strftime("%Y%m%d%H%M"))
@@ -66,11 +66,11 @@ if(check1 and check2):
 
 	# check them again for whether it works, if so save them off
         if(check1):
-            print("Writing file",img1filename)
+            #print("Writing file",img1filename)
             cv2.imwrite(img1filename,frame1)
 
         if(check2):
-            print("Writing file",img2filename)
+            #print("Writing file",img2filename)
             cv2.imwrite(img2filename,frame2)
 
 # failure in initial frame capture; bail out    
