@@ -71,6 +71,7 @@ class mobileNetSSD():
         # show the final image if set
         if self.show: 
             cv2.imshow("MobileNet-SSD",self.image)
+            cv2.waitKey(0)
 
         # set the processed variable
         self.processed = True

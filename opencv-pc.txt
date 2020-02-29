@@ -1,0 +1,14 @@
+For processing on a PC, install OpenCV using the following:
+
+1.  Make a new Python3 venv
+
+python3 -m venv --system-site-packages --symlinks p3pipcv
+
+2.  Activate it
+
+source p3pipcv/bin/activate
+
+3.  Install opencv-contrib package
+
+pip3 install opencv-contrib-python
+

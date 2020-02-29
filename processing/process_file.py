@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 # process_file.py
 # Chris Wieringa, cwiering@umich.edu, 2020-02-28
 # Michael Farmer, CSC548 Winter 2020 UM Flint
@@ -10,7 +8,6 @@
 # Input:  
 #   --image <filename> - which image file will be loaded
 #   --outimages <boolean True or False> - outputs processed images per algorithm
-#   --scale <boolean True or False> - scale the input image
 #   --scalepercent <int 0-100> - percent to scale the image to
 #   --showprocessed <boolean True or False> - show processed images per algorithm
 # Output:
@@ -35,9 +32,7 @@ ap.add_argument("--image",required=True,
         help="image filepath")
 ap.add_argument("--outimages", type=bool, default=False,
         help="boolean switch to output images")
-ap.add_argument("--scale", type=bool, default=False,
-        help="boolean switch to scale images")
-ap.add_argument("--scalepercent", type=int, default=50,
+ap.add_argument("--scalepercent", type=int, default=100,
         help="percent to scale image to, must set --scale")
 ap.add_argument("--show", type=bool, default=False,
         help="boolean switch to show processed images")
@@ -61,7 +56,7 @@ outimagestatsjson = "outputs/{}.json".format(basefilename)
 
 # first off, open the file and scale if required
 image = cv2.imread(args["image"])
-if(args["scale"]):
+if(args["scalepercent"] != 100):
     new_width =  int(image.shape[1] * args["scalepercent"] / 100)
     new_height = int(image.shape[0] * args["scalepercent"] / 100) 
     image = cv2.resize(image, (new_width, new_height))
@@ -79,16 +74,12 @@ proc1.process()
 output["mobileNetSSD"] = proc1.numpersons
 outimages["mobileNetSSD"] = proc1.image
 
-# Pause to display images
-if args["show"]:
-    cv2.waitKey(0)
-
-
 # Outputs section
 # If necessary, output the images to the outputs directory
 if args["outimages"]:
     for key in outimages:
         outfilename = "{}-{}.jpg".format(outimagebasefilename,key)
+        print("Outputing processed {} processed image to {}".format(key,outfilename))
         cv2.imwrite(outfilename,outimages[key])
 
 # Output the output variable to JSON STDOUT and to file
