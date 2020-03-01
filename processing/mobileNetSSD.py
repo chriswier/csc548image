@@ -72,6 +72,7 @@ class mobileNetSSD():
         if self.show: 
             cv2.imshow("MobileNet-SSD",self.image)
             cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
         # set the processed variable
         self.processed = True

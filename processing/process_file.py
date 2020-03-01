@@ -21,10 +21,12 @@ import numpy as np
 import argparse
 import cv2
 import json
+import copy
 from pathlib import Path,PurePath
 
 # import my processing classes
 from mobileNetSSD import mobileNetSSD
+from violaJones import violaJones
 
 # parse my arguments
 ap = argparse.ArgumentParser()
@@ -69,10 +71,23 @@ dimen = (width,height)
 # based off of https://www.pyimagesearch.com/2017/09/11/object-detection-with-deep-learning-and-opencv/ and https://github.com/chuanqi305/MobileNet-SSD.  This is my base-case "commercial" detection
 # algorithm to compare my performance off of
 conf = 0.25
-proc1 = mobileNetSSD(image,conf,args["show"])
+p1image = copy.deepcopy(image)
+proc1 = mobileNetSSD(p1image,conf,args["show"])
 proc1.process()
 output["mobileNetSSD"] = proc1.numpersons
 outimages["mobileNetSSD"] = proc1.image
+
+# 2.  viola-jones haars classifier network detection
+# based off of https://iq.opengenus.org/face-detection-using-viola-jones-algorithm/
+# second comparison algorithm
+# classifiers passed can be one of:
+#   frontalface_default, frontalface_alt, frontalface_alt2,
+#   profileface, frontalface_alt_tree
+p2image = copy.deepcopy(image)
+proc2 = violaJones(p2image,'frontalface_alt2',args["show"])
+proc2.process()
+output["violaJones"] = proc2.numpersons
+outimages["violaJones"] = proc2.image
 
 # Outputs section
 # If necessary, output the images to the outputs directory
