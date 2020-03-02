@@ -1,0 +1,19 @@
+#!/bin/bash
+# # # # # # # # # # # # # # # #
+# Usage:  sbatch process.script $1   (where $1 is the filename to process)
+
+# One compute node, default of 1 CPU core per node
+#SBATCH -N 1
+#
+# Job name:
+#SBATCH -J imageprocess
+# 
+# Working directory (for outputs):
+#SBATCH -D /home/cwieri39/csc548image/batchprocessing/
+
+# Load the venv
+cd /home/cwieri39
+source p3pipcv/bin/activate
+cd /home/cwieri39/csc548image/processing/
+
+srun python3 process_file.py --image $1 --outimages True --scalepercent 50

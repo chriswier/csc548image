@@ -94,11 +94,12 @@ outimages["violaJones"] = proc2.image
 if args["outimages"]:
     for key in outimages:
         outfilename = "{}-{}.jpg".format(outimagebasefilename,key)
-        print("Outputing processed {} processed image to {}".format(key,outfilename))
-        cv2.imwrite(outfilename,outimages[key])
+        #print("Outputing processed {} processed image to {}".format(key,outfilename))
+        if output[key] > 0:
+            cv2.imwrite(outfilename,outimages[key])
 
 # Output the output variable to JSON STDOUT and to file
-print(json.dumps(output))
+#print(json.dumps(output))
 with open(outimagestatsjson,'w+') as outjsonfile:
     json.dump(output, outjsonfile)
 
