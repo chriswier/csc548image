@@ -45,6 +45,7 @@ output = {}
 outimages = {}
 
 # other variables
+debug = True
 imagefile = PurePath(args['image'])
 basefilename = imagefile.stem
 outimagebasefilename = "outputs/{}".format(basefilename)
@@ -94,13 +95,14 @@ outimages["violaJones"] = proc2.image
 if args["outimages"]:
     for key in outimages:
         outfilename = "{}-{}.jpg".format(outimagebasefilename,key)
-        #print("Outputing processed {} processed image to {}".format(key,outfilename))
         if output[key] > 0:
             cv2.imwrite(outfilename,outimages[key])
 
 # Output the output variable to JSON STDOUT and to file
 #print(json.dumps(output))
 with open(outimagestatsjson,'w+') as outjsonfile:
+    if debug:
+        print(output)
     json.dump(output, outjsonfile)
 
 # MAIN Program: End
