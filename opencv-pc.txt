@@ -15,7 +15,7 @@ source p3pipcv/bin/activate
 
 pip3 install opencv-contrib-python
 
-4.  Install extra packages
+4.  Install extra packages (for graphing)
 pip3 install matplotlib
 pip3 install tk
-
+pip3 install pillow
