@@ -1,5 +1,8 @@
 For processing on a PC, install OpenCV using the following:
 
+0.  Make sure you have required system dependencies
+(This includes the python3-virtualenv, and python3-tkinter packages)
+
 1.  Make a new Python3 venv
 
 python3 -m venv --system-site-packages --symlinks p3pipcv
@@ -11,4 +14,8 @@ source p3pipcv/bin/activate
 3.  Install opencv-contrib package
 
 pip3 install opencv-contrib-python
+
+4.  Install extra packages
+pip3 install matplotlib
+pip3 install tk
 
