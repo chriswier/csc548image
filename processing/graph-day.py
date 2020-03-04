@@ -8,7 +8,8 @@
 # Input:
 # --month # - which month number to process
 # --day # - which day number to process
-# --outgraph <boolean True or False> - outputs graph as listed
+# --out <boolean True or False> - outputs graph as listed, False default
+# --show <boolean True or False> - shows graph, False default
 #
 # Output: none, unless outgraph is set
 
@@ -18,9 +19,11 @@
 # imports
 import tkinter
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import json
 import argparse
 import re
+import os
 
 # parse arguments
 ap = argparse.ArgumentParser()
@@ -28,8 +31,10 @@ ap.add_argument("--month",type=int,required=True,
     help="month number")
 ap.add_argument("--day",type=int,required=True,
     help="day number")
-ap.add_argument("--outgraph",type=bool,default=False,
+ap.add_argument("--out",type=bool,default=False,
     help="output graph to file boolean")
+ap.add_argument("--show",type=bool,default=False,
+    help="show graph boolean")
 args = vars(ap.parse_args())
 givenmonth = "{:02d}".format(args['month'])
 givenday = "{:02d}".format(args['day'])
@@ -73,16 +78,36 @@ for i in sorted (jsondata.keys()):
 # make the pretty graph
 colors = ['green','blue','yellow','red','orange','purple','gray','black']
 count = 0
+ax = plt.subplot(111)
 for algo in data['algorithm']:
-    plt.plot(data['times'],data['algorithm'][algo],color=colors[count])
+    ax.plot(data['times'],data['algorithm'][algo],color=colors[count],label=algo)
     count += 1
-plt.xlabel("Day #{} times".format(args['month']))
+plt.title("Max Detected people by algorithm (during day)")
+plt.xlabel("{}-{} times".format(myyear,givenmonth))
 plt.ylabel("Max detected people")
-plt.title("Max Detected people by algorithm")
-plt.show()
+chartBox = ax.get_position()
+ax.set_position([chartBox.x0, chartBox.y0, chartBox.width*0.8, chartBox.height])
+ax.legend(loc='upper center', bbox_to_anchor=(1.205, 0.8), ncol=1)
+ax.set_xticklabels([])
+if(args['show'] == True):
+    plt.show()
 
-# debug
-print(data)
+# output if applicable
+if(args['out'] == True):
+    outfilenamejpg = "outputs/graphs/graph-day-{}-{}.jpg".format(givenmonth,givenday)
+    outfilenamejson = "outputs/graphs/graph-day-{}-{}.json".format(givenmonth,givenday)
+    # remove the out graph jpg if it exists
+    if os.path.exists(outfilenamejpg):
+      os.remove(outfilenamejpg)
+
+    # output the file
+    plt.savefig(outfilenamejpg)
+    print("Writing graph to {}".format(outfilenamejpg))
+
+    # output the json
+    print("Writing JSON data to {}".format(outfilenamejson))
+    with open(outfilenamejson,'w+') as outjsonfile:
+        json.dump(data,outjsonfile)
 
 # MAIN: End
 # # # # # #
