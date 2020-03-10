@@ -27,17 +27,18 @@ from pathlib import Path,PurePath
 # import my processing classes
 from mobileNetSSD import mobileNetSSD
 from violaJones import violaJones
+from myMotionRegion import myMotionRegion
 
 # parse my arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("--image",required=True,
-        help="image filepath")
-ap.add_argument("--outimages", type=bool, default=False,
-        help="boolean switch to output images")
-ap.add_argument("--scalepercent", type=int, default=100,
-        help="percent to scale image to, must set --scale")
-ap.add_argument("--show", type=bool, default=False,
-        help="boolean switch to show processed images")
+ap.add_argument('--image',required=True,
+        help='image filepath')
+ap.add_argument('--outimages', type=bool, default=False,
+        help='boolean switch to output images')
+ap.add_argument('--scalepercent', type=int, default=100,
+        help='percent to scale image to')
+ap.add_argument('--show', type=bool, default=False,
+        help='boolean switch to show processed images')
 args = vars(ap.parse_args())
 
 # output var
@@ -58,10 +59,10 @@ outimagestatsjson = "outputs/{}.json".format(basefilename)
 # MAIN Program: Start
 
 # first off, open the file and scale if required
-image = cv2.imread(args["image"])
-if(args["scalepercent"] != 100):
-    new_width =  int(image.shape[1] * args["scalepercent"] / 100)
-    new_height = int(image.shape[0] * args["scalepercent"] / 100) 
+image = cv2.imread(args['image'])
+if(args['scalepercent'] != 100):
+    new_width =  int(image.shape[1] * args['scalepercent'] / 100)
+    new_height = int(image.shape[0] * args['scalepercent'] / 100) 
     image = cv2.resize(image, (new_width, new_height))
 (height,width) = image.shape[:2]
 dimen = (width,height)
@@ -73,10 +74,10 @@ dimen = (width,height)
 # algorithm to compare my performance off of
 conf = 0.25
 p1image = copy.deepcopy(image)
-proc1 = mobileNetSSD(p1image,conf,args["show"])
+proc1 = mobileNetSSD(p1image,conf,args['show'])
 proc1.process()
-output["mobileNetSSD"] = proc1.numpersons
-outimages["mobileNetSSD"] = proc1.image
+output['mobileNetSSD'] = proc1.numpersons
+outimages['mobileNetSSD'] = proc1.image
 
 # 2.  viola-jones haars classifier network detection
 # based off of https://iq.opengenus.org/face-detection-using-viola-jones-algorithm/
@@ -85,14 +86,24 @@ outimages["mobileNetSSD"] = proc1.image
 #   frontalface_default, frontalface_alt, frontalface_alt2,
 #   profileface, frontalface_alt_tree
 p2image = copy.deepcopy(image)
-proc2 = violaJones(p2image,'frontalface_alt2',args["show"])
+proc2 = violaJones(p2image,'frontalface_alt2',args['show'])
 proc2.process()
-output["violaJones"] = proc2.numpersons
-outimages["violaJones"] = proc2.image
+output['violaJones'] = proc2.numpersons
+outimages['violaJones'] = proc2.image
+
+# 3.  myMotionRegion - my algorithm for doing motion detection
+# between the 5 captured images, then applying/counting regions.
+# This one needs to load all 5 images, so just pass a lot of params
+#  imagefile - filename, scalepercent - pass from args, minsize of region,
+#  show - pass from args
+proc3 = myMotionRegion(imagefile,args['scalepercent'],400,args['show'])
+proc3.process()
+output['myMotionRegion'] = proc3.numpersons
+outimages['myMotionRegion'] = proc3.image
 
 # Outputs section
 # If necessary, output the images to the outputs directory
-if args["outimages"]:
+if args['outimages']:
     for key in outimages:
         outfilename = "{}-{}.jpg".format(outimagebasefilename,key)
         if output[key] > 0:

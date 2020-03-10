@@ -16,8 +16,8 @@ import time
 imgdir = '/home/cwieri39/csc548image/images/';
 count = 0
 for filename in os.listdir(imgdir):
-    # process only the files that end in -1.jpg
-    if re.search("-1.jpg$",filename):
+    # process only the files that end in -0.jpg
+    if re.search("-0.jpg$",filename):
         print(filename)
         fullfilename = "{}/{}".format(imgdir,filename)
         # don't queue too many at once
