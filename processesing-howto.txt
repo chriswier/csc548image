@@ -1,0 +1,14 @@
+Steps to do the processing:
+
+0. Activate p3pipcv virtual environment
+   source ~/p3pipcv/bin/activate
+1. cd csc548image/processing/
+2. Queue up all processing to SLURM queue - execute: 
+   python3 batch_process_queue.py
+   (and wait until everything is processed - check "squeue --name=imageprocess"
+3. Run the JSON analyzer - execute:
+   python3 analyze_json.py
+4. View graphs!  Execute either:
+   python3 graph-month.py --month 2 --show True --out True
+      (or day graphs)
+   python3 graph-day.py --month 3 --day 4 --show True --out True
