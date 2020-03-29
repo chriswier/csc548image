@@ -1,0 +1,20 @@
+#!/bin/bash
+# # # # # # # # # # # # # # # #
+# Usage:  sbatch median.script $1   (where $1 is the yyyymmdd to process)
+
+# One compute node, default of 1 CPU core per node
+#SBATCH -N 1
+#SBATCH -c 2
+#
+# Job name:
+#SBATCH -J imageprocess
+# 
+# Working directory (for outputs):
+#SBATCH -D /home/cwieri39/csc548image/batchprocessing/
+
+# Load the venv
+cd /home/cwieri39
+source p3pipcv/bin/activate
+cd /home/cwieri39/csc548image/processing/
+
+srun python3 make-median-image.py --day $1
