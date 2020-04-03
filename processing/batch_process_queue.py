@@ -20,10 +20,16 @@ for filename in os.listdir(imgdir):
     if re.search("-0.jpg$",filename):
         print(filename)
         fullfilename = "{}/{}".format(imgdir,filename)
+
         # don't queue too many at once
-        if(count % 500 == 499):
-            print("Sleeping to let SLURM catchup")
-            time.sleep(10)
+        if(count % 10 == 9):
+            numslurmprocesses = subprocess.Popen(['squeue','--noheader','--name=imageprocess'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            stdout,stderr = numslurmprocesses.communicate()
+            numprocs = len(stdout.decode('ascii').splitlines())
+
+            if numprocs > 120:
+                print("Sleeping to let SLURM catchup")
+                time.sleep(5)
 
         # queue them
         prog = ['sbatch','process.script',fullfilename]

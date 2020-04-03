@@ -7,7 +7,7 @@
 #SBATCH -c 2
 #
 # Job name:
-#SBATCH -J imageprocess
+#SBATCH -J medianprocess
 # 
 # Working directory (for outputs):
 #SBATCH -D /home/cwieri39/csc548image/batchprocessing/

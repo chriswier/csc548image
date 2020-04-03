@@ -27,7 +27,7 @@ from pathlib import Path,PurePath
 # import my processing classes
 from mobileNetSSD import mobileNetSSD
 from violaJones import violaJones
-from myMotionRegion import myMotionRegion
+from myMotionSeriesRegion import myMotionSeriesRegion
 
 # parse my arguments
 ap = argparse.ArgumentParser()
@@ -91,15 +91,15 @@ proc2.process()
 output['violaJones'] = proc2.numpersons
 outimages['violaJones'] = proc2.image
 
-# 3.  myMotionRegion - my algorithm for doing motion detection
+# 3.  myMotionSeriesRegion - my algorithm for doing motion detection
 # between the 5 captured images, then applying/counting regions.
 # This one needs to load all 5 images, so just pass a lot of params
 #  imagefile - filename, scalepercent - pass from args, minsize of region,
 #  show - pass from args
-proc3 = myMotionRegion(imagefile,args['scalepercent'],400,args['show'])
+proc3 = myMotionSeriesRegion(imagefile,args['scalepercent'],400,args['show'])
 proc3.process()
-output['myMotionRegion'] = proc3.numpersons
-outimages['myMotionRegion'] = proc3.image
+output['myMotionSeriesRegion'] = proc3.numpersons
+outimages['myMotionSeriesRegion'] = proc3.image
 
 # Outputs section
 # If necessary, output the images to the outputs directory
