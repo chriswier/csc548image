@@ -22,10 +22,14 @@ class myMotionMedianSubRegion():
 
     # initialize, accept the image filename, scalepercent, minsize,
     #   and show variable
-    def __init__(self,imagefilename,scalepercent,minsize,show):
+    def __init__(self,image,imagefilename,scalepercent,minsize,maxratio,show):
+        self.inimage = image
         self.imagefilename = imagefilename
+        self.basefilename = imagefilename.stem
+        self.parentdir = imagefilename.parent
         self.scalepercent = scalepercent
         self.minsize = minsize
+        self.maxratio = maxratio
         self.show  = show
         self.image = None
         self.processed = False
@@ -45,44 +49,56 @@ class myMotionMedianSubRegion():
         # So check to see if the median image exists and that this image is 
         # bright enough to do anything.
 
-        m = re.search("^(\d{12})-(\d)-\d$",self.basefilename)
+        m = re.search("^(\d{8})\d{4}-(\d)-\d$",self.basefilename)
         medianimagename = "medians/{}-median-{}.jpg".format(m.groups()[0],m.groups()[1])
+        print(medianimagename)
         camnumber = int(m.groups()[1])
 
         # check if the file exists and is a file
         if not Path(medianimagename).exists() or not Path(medianimagename).is_file():
+          #print("bailing no medianimage")
           self.processed = True
           return
 
-        # open the median image and read it in
+        # open the median image and read it in, guassian blur it with 13,13
+        # kernel to get rid of errant data
         medianimage = cv2.imread(medianimagename)
         medianimage = cv2.cvtColor(medianimage, cv2.COLOR_BGR2GRAY)
+        medianimage = cv2.GaussianBlur(medianimage, (13,13), 0)
 
         # OK, read in the image file and proccess it:
         #  1. Convert to grayscale
         #  2. Check the average pixel value; assume 80+ is good
         #  3. Gaussian blur it with a 13,13 kernel
-        image = cv2.imread(myfilename)
+        image = copy.deepcopy(self.inimage)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         pixavg = np.average(image,None);
         if pixavg < 80:
+          #print("bailing avgpix too low",pixavg)
           self.processed = True
           return
+        image = cv2.GaussianBlur(image, (13,13), 0)
+       
         
         # OK, now I need to compute "changes" between my images
         # by taking the absoulte value of the differences at each pixel
-        # from the medianimage.  Then threshold it (adaptive threshold)
-        fdelta = cv2.absdiff(medianimage,image)
-        thresh = cv2.adaptiveThreshold(fdelta,255,
-            cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY_INV,21,2)
+        # from the medianimage.  Then threshold it (fixed threshold)
+        (height,width) = image.shape[:2]
+        fdelta = np.zeros((height,width),np.uint8)
+        for x in range(0,width):
+          for y in range(0,height):
+            pixval = int(image[y][x]) - int(medianimage[y][x])
+            if(pixval < 0): pixval = 0
+            #print(x,y,image[y][x],medianimage[y][x],pixval)
+            fdelta[y][x] = pixval
+
+        #cv2.imshow("frame delta",fdelta)
+        #cv2.waitKey(0)
+        ret, thresh = cv2.threshold(fdelta,60,255,cv2.THRESH_BINARY)
+        #cv2.imshow("thresh",thresh)
+        #cv2.waitKey(0)
         thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, None)
         thresh = cv2.dilate(thresh, None, iterations=1)
-
-        # debug
-        cv2.imshow("image",image)
-        cv2.imshow("thresh",thresh)
-        cv2.imshow("frame delta",fdelta)
-        cv2.waitKey(0)
 
         # move onto final processing
         twidth = thresh.shape[1]
@@ -93,26 +109,26 @@ class myMotionMedianSubRegion():
         # camnumber: 1 - top 30%, bottom 20%
         # camnumber: 2 - top 17%, bottom 45%
         if camnumber == 1:
-            top_y_cut = int(thresholdSums.shape[0] * 0.3)
-            bottom_y_cut = int(thresholdSums.shape[0] * (1 - 0.2))
+            top_y_cut = int(thresh.shape[0] * 0.3)
+            bottom_y_cut = int(thresh.shape[0] * (1 - 0.2))
         elif camnumber == 2:
-            top_y_cut = int(thresholdSums.shape[0] * 0.17)
-            bottom_y_cut = int(thresholdSums.shape[0] * (1 - 0.45))
+            top_y_cut = int(thresh.shape[0] * 0.17)
+            bottom_y_cut = int(thresh.shape[0] * (1 - 0.45))
         else:
             sys.exit(1)
 
         if top_y_cut is not None and bottom_y_cut is not None:
             for x in range(0,twidth):
                 for y in range(0,top_y_cut):
-                    thresholdSums[y][x] = 0
+                    thresh[y][x] = 0
                 for y in range(bottom_y_cut,theight):
-                    thresholdSums[y][x] = 0
+                    thresh[y][x] = 0
 
         # OK, now do some more dilation to make a good mask of the image
         thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, None)
-        #thresholdSums = cv2.dilate(thresholdSums, None, iterations=4)
-        #thresholdSums = cv2.erode(thresholdSums, None, iterations=4)
-        #cv2.imshow("thresholdSums",thresholdSums)
+        thresh = cv2.dilate(thresh, None, iterations=4)
+        thresh = cv2.erode(thresh, None, iterations=4)
+        #cv2.imshow("threshFinalMorph",thresh)
         #cv2.waitKey(0)
 
         # next, process connected components (regions)
@@ -120,7 +136,7 @@ class myMotionMedianSubRegion():
         finalThresh = np.zeros_like(thresh)
         connectivity = 4
         output = cv2.connectedComponentsWithStats(
-                thresholdSums,connectivity,cv2.CV_32S)
+                thresh,connectivity,cv2.CV_32S)
         totalnumlabels = output[0]
         labels = output[1]
         stats = output[2]
@@ -130,9 +146,17 @@ class myMotionMedianSubRegion():
 
         # to do this, loop through the labels matrix, keeping only pixels
         # (set to 255) whose label area is greater than the minsize
+        # also check for dimensions and ratios of width and height.  If I have a
+        # high ratio value, skip it.
         regioncount = 0
         for lnum in range(1,totalnumlabels):
-            if(stats[lnum][4] > self.minsize):
+
+            # compute w/h ratio
+            (x,y,w,h) = stats[lnum][0:4]
+            ratio = max(abs(w/h),abs(h/w))
+            #print("region ",lnum," ratio ",ratio)
+
+            if(stats[lnum][4] > self.minsize and ratio < self.maxratio):
                 #print(lnum,stats[lnum][4])
                 regioncount += 1
                 finalThresh = np.bitwise_or(finalThresh,
@@ -145,17 +169,29 @@ class myMotionMedianSubRegion():
         self.numpersons = regioncount
 
         # make the image by the masked original image
-        self.image = cv2.bitwise_and(image,image, mask=finalThresh)
+        self.image = cv2.bitwise_and(self.inimage,self.inimage, mask=finalThresh)
 
         # add bounding borders
         for lnum in range(1,totalnumlabels):
-            if(stats[lnum][4] > self.minsize):
+            # compute w/h ratio
+            (x,y,w,h) = stats[lnum][0:4]
+            ratio = max(abs(w/h),abs(h/w))
+            #print("region ",lnum," ratio ",ratio)
+
+            if(stats[lnum][4] > self.minsize and ratio < self.maxratio):
                 (x,y,w,h) = stats[lnum][0:4]
-                cv2.rectangle(self.image, (x,y), (x+w,y+h), (0,255,0), 2)
+                cv2.rectangle(self.image, (x,y), (x+w,y+h), (128,128,0), 2)
+
+        # resize if applicable
+        if(self.scalepercent != 100):
+            new_width =  int(self.image.shape[1] * self.scalepercent / 100)
+            new_height = int(self.image.shape[0] * self.scalepercent / 100)
+            self.image = cv2.resize(self.image, (new_width, new_height))
+
 
         # show the final image if set
         if self.show: 
-            cv2.imshow("myMotionRegion",self.image)
+            cv2.imshow("myMotionMedianSubRegion",self.image)
             cv2.waitKey(0)
 
         # set the processed variable

@@ -61,6 +61,7 @@ outimagestatsjson = "outputs/{}.json".format(basefilename)
 
 # first off, open the file and scale if required
 image = cv2.imread(args['image'])
+origimage = copy.deepcopy(image)
 if(args['scalepercent'] != 100):
     new_width =  int(image.shape[1] * args['scalepercent'] / 100)
     new_height = int(image.shape[0] * args['scalepercent'] / 100) 
@@ -105,9 +106,9 @@ outimages['myMotionSeriesRegion'] = proc3.image
 # 4.  myMotionMedianSubRegion - my algorithm for doing motion detection
 # between the median image for a day and then the given image.  Detect
 # changes, then apply/count regions.  This process needs to load the median
-# image and the default image, working off of non-scaled, and optionally
-# scaling the final output image
-proc4 = myMotionMedianSubRegion(imagefile,args['scalepercent'],400,args['show'])
+# image and the default origimage, working off of non-scaled, and optionally
+# scaling the final output image.  Arguments:  the original loaded image, the image filename, the scalepercent, min area of region, maximum ratio w/h or h/w of region, and the show variable
+proc4 = myMotionMedianSubRegion(origimage,imagefile,args['scalepercent'],600,3,args['show'])
 proc4.process()
 output['myMotionMedianSubRegion'] = proc4.numpersons
 outimages['myMotionMedianSubRegion'] = proc4.image

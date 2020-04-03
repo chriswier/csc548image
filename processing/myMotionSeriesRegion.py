@@ -182,7 +182,7 @@ class myMotionSeriesRegion():
 
         # show the final image if set
         if self.show: 
-            cv2.imshow("myMotionRegion",self.image)
+            cv2.imshow("myMotionSeriesRegion",self.image)
             cv2.waitKey(0)
 
         # set the processed variable
