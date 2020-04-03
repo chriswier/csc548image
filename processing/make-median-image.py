@@ -17,7 +17,6 @@ import argparse
 import os
 import re
 import pathlib
-from statistics import median
 import sys
 
 # parser my arguments
@@ -26,9 +25,12 @@ ap.add_argument('--day',required=True,
   help='day to process in format: yyyymmdd')
 ap.add_argument('--imagedir',
   help='path to image directory',default='/home/cwieri39/csc548image/images')
+ap.add_argument('--minpixavg',
+  help='minimum pixel average value to use in median; usually 80+',default=80)
 args = vars(ap.parse_args())
 day = args['day']
 imagedir = args['imagedir']
+minpixavg = args['minpixavg']
 
 # other variables
 debug = True
@@ -37,6 +39,7 @@ images = {}
 height = width = 0
 cam1outfile = "/home/cwieri39/csc548image/processing/medians/{}-median-1.jpg".format(day)
 cam2outfile = "/home/cwieri39/csc548image/processing/medians/{}-median-2.jpg".format(day)
+framesprocessed = 0
 
 # SETUP: End
 # # # # # # #
@@ -97,13 +100,14 @@ for x in range(0,width):
     for filename in images:
       # check if the average pixel value is high enough that this image
       # is considered an "illuminated" image; I don't want black images
-      if avgpixvalues[filename] < 70:
+      if avgpixvalues[filename] < minpixavg:
         #print("Skipping {} due to low average pixel value: {}".format(
         #  filename,avgpixvalues[filename]))
         pass
 
       else:
         #print("Processing {} {} {} ...".format(filename,x,y))
+        framesprocessed += 1
   
         # check if this is camera 1 or 2
         m = re.search("(\d)-\d.jpg$",filename);
@@ -119,8 +123,15 @@ for x in range(0,width):
   
     # looping through all the pictures at this pixel is done, now get the
     # median value and put it in my median np array
-    median1[y][x] = median(cam1pixvals)
-    median2[y][x] = median(cam2pixvals)
+    if(len(cam1pixvals)):
+      median1[y][x] = np.median(cam1pixvals)
+    else:
+      median1[y][x] = 0
+
+    if(len(cam2pixvals)):
+      median2[y][x] = np.median(cam2pixvals)
+    else:
+      median2[y][x] = 0
 
     # give some feedback
     #if y % 700 == 0:
@@ -130,15 +141,20 @@ for x in range(0,width):
 #print(median1)
 #print(median2)
 
-# convert median images to OpenCV images
-cam1median = cv2.cvtColor(median1, cv2.COLOR_GRAY2BGR)
-cam2median = cv2.cvtColor(median2, cv2.COLOR_GRAY2BGR)
+# only process this if I have any number of frames that were processed
+if framesprocessed:
 
- # write them out
-#print("Writing out files to medians directory.")
-cv2.imwrite(cam1outfile,cam1median)
-cv2.imwrite(cam2outfile,cam2median)
+  # convert median images to OpenCV images
+  cam1median = cv2.cvtColor(median1, cv2.COLOR_GRAY2BGR)
+  cam2median = cv2.cvtColor(median2, cv2.COLOR_GRAY2BGR)
 
+  # write them out
+  #print("Writing out files to medians directory.")
+  cv2.imwrite(cam1outfile,cam1median)
+  cv2.imwrite(cam2outfile,cam2median)
+
+else:
+  print("No frames above minimum average pixel value of {}; therefore, no output.".format(minpixavg))
 
 
 # MAIN: End
