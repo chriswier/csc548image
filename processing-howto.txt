@@ -1,0 +1,33 @@
+Steps to do the processing:
+
+0. Activate p3pipcv virtual environment
+   source ~/p3pipcv/bin/activate
+1. cd csc548image/processing/
+2. Process median images first to SLURM queue - execute:
+   python3 batch_process_queue_medianimages.py
+
+   WAIT until everything is processed - check "squeue --name=medianprocess"
+   (To reset output medians, remove jpg files from processing/medians/)
+
+3. Queue up all processing to SLURM queue - execute: 
+   python3 batch_process_queue.py
+
+   WAIT until everything is processed - check "squeue --name=imageprocess"
+   (This will automatically overwrite output files from processing/outputs/)
+
+4. Run the JSON analyzer - execute:
+   python3 analyze_json.py
+
+   (This will automatically overwrite processing/fulldata.json ) 
+
+5. View graphs!  Execute either:
+   You can create all applicable graphs by running:
+   python3 create-all-graphs.py
+
+     OR manually run an individual one:
+
+   python3 graph-month.py --month 2 --show True --out True
+      (or day graphs)
+   python3 graph-day.py --month 3 --day 4 --show True --out True
+
+   (This will automatically overwrite output files from processing/outputs/graphs)

@@ -23,13 +23,15 @@ for filename in os.listdir(imgdir):
 
         # don't queue too many at once
         if(count % 10 == 9):
-            numslurmprocesses = subprocess.Popen(['squeue','--noheader','--name=imageprocess'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            stdout,stderr = numslurmprocesses.communicate()
-            numprocs = len(stdout.decode('ascii').splitlines())
+            numprocs = 1000   # set to a high number
+            while numprocs > 350:
+                numslurmprocesses = subprocess.Popen(['squeue','--noheader','--name=imageprocess'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                stdout,stderr = numslurmprocesses.communicate()
+                numprocs = len(stdout.decode('ascii').splitlines())
 
-            if numprocs > 120:
-                print("Sleeping to let SLURM catchup")
-                time.sleep(5)
+                if numprocs > 350:
+                    print("Sleeping to let SLURM catchup")
+                    time.sleep(5)
 
         # queue them
         prog = ['sbatch','process.script',fullfilename]
