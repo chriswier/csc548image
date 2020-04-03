@@ -28,6 +28,7 @@ from pathlib import Path,PurePath
 from mobileNetSSD import mobileNetSSD
 from violaJones import violaJones
 from myMotionSeriesRegion import myMotionSeriesRegion
+from myMotionMedianSubRegion import myMotionMedianSubRegion
 
 # parse my arguments
 ap = argparse.ArgumentParser()
@@ -100,6 +101,16 @@ proc3 = myMotionSeriesRegion(imagefile,args['scalepercent'],400,args['show'])
 proc3.process()
 output['myMotionSeriesRegion'] = proc3.numpersons
 outimages['myMotionSeriesRegion'] = proc3.image
+
+# 4.  myMotionMedianSubRegion - my algorithm for doing motion detection
+# between the median image for a day and then the given image.  Detect
+# changes, then apply/count regions.  This process needs to load the median
+# image and the default image, working off of non-scaled, and optionally
+# scaling the final output image
+proc4 = myMotionMedianSubRegion(imagefile,args['scalepercent'],400,args['show'])
+proc4.process()
+output['myMotionMedianSubRegion'] = proc4.numpersons
+outimages['myMotionMedianSubRegion'] = proc4.image
 
 # Outputs section
 # If necessary, output the images to the outputs directory
